@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.graph_objects as go
 
 # Force light mode and ensure overflow is clean
 st.markdown(
@@ -86,56 +85,3 @@ results_display = results.set_index("Year")
 
 st.subheader(f"Projected KiwiSaver Balances - {fund_type} Funds")
 st.dataframe(results_display.style.format({col: "${:,.2f}" for col in results_display.columns}))
-
-sorted_funds = sorted(selected_funds.keys(), key=lambda f: results[f].iloc[-1], reverse=True)
-
-# Build Plotly chart
-fig = go.Figure()
-for fund in sorted_funds:
-    fig.add_trace(go.Scatter(
-        x=results["Year"],
-        y=results[fund],
-        mode='lines+markers',
-        name=fund,
-        hovertemplate=f'<b>Fund</b>: {fund}<br><b>Balance</b>: $%{{y:,.2f}}<extra></extra>'
-    ))
-
-fig.update_layout(
-    xaxis_title="Years",
-    yaxis_title="Projected Balance ($)",
-    title=f"KiwiSaver Growth Comparison ({fund_type} Funds)",
-    hovermode="x unified",
-    dragmode="pan",
-    xaxis=dict(fixedrange=True),
-    yaxis=dict(fixedrange=True),
-    hoverlabel=dict(
-        bgcolor="white",
-        font_size=14,
-        font_family="Arial"
-    )
-)
-
-# Show chart only on desktop via JS detection
-st.subheader("Balance Growth Over Time")
-st.markdown('<div id="chart-container">', unsafe_allow_html=True)
-st.plotly_chart(fig, use_container_width=True)
-st.markdown('</div>', unsafe_allow_html=True)
-
-# JS to hide chart on mobile and show a message instead
-st.markdown(
-    """
-    <div id="mobile-msg" style="display: none; color: red; font-style: italic;">
-        📱 Chart hidden on mobile for a better experience.
-    </div>
-
-    <script>
-    const chart = window.parent.document.getElementById("chart-container") || document.getElementById("chart-container");
-    const msg = document.getElementById("mobile-msg");
-    if (window.innerWidth < 768) {
-        if (chart) chart.style.display = "none";
-        if (msg) msg.style.display = "block";
-    }
-    </script>
-    """,
-    unsafe_allow_html=True
-)
